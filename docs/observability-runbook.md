@@ -180,6 +180,8 @@ In Grafana, use the built-in Kubernetes dashboards to show:
 - pod restarts
 - workload health
 
+Grafana intentionally runs as one replica in this demo because the chart uses its local SQLite database with a persistent volume. Prometheus and Alertmanager still run with two replicas; production Grafana HA would use an external database such as PostgreSQL.
+
 ## 7. Verify Logs
 
 In Grafana Explore, choose the Loki data source.

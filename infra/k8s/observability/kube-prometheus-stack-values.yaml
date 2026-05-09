@@ -67,7 +67,7 @@ alertmanager:
 
 grafana:
   enabled: true
-  replicas: 2
+  replicas: 1
   admin:
     existingSecret: grafana-admin
     userKey: admin-user
