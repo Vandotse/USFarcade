@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: usfarcade-schema-migration
+  namespace: usfarcade
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: schema-migration
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: postgres:16-alpine
+          envFrom:
+            - secretRef:
+                name: usfarcade-db
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -eu
+              psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f /migrations/migration.sql
+          volumeMounts:
+            - name: migration
+              mountPath: /migrations
+      volumes:
+        - name: migration
+          configMap:
+            name: usfarcade-schema-migration
+

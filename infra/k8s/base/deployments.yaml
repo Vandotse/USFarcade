@@ -1,0 +1,311 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: usfarcade
+    spec:
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: frontend
+          image: ghcr.io/OWNER/USFarcade/frontend:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: player-service
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: player-service
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: player-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: player-service
+        app.kubernetes.io/part-of: usfarcade
+    spec:
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: player-service
+          image: ghcr.io/OWNER/USFarcade/player-service:dev
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: usfarcade-config
+            - secretRef:
+                name: usfarcade-db
+          env:
+            - name: PORT
+              value: "3001"
+            - name: SERVICE_NAME
+              value: player-service
+          ports:
+            - name: http
+              containerPort: 3001
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+          resources:
+            requests:
+              cpu: 75m
+              memory: 96Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-service
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: game-service
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: game-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: game-service
+        app.kubernetes.io/part-of: usfarcade
+    spec:
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: game-service
+          image: ghcr.io/OWNER/USFarcade/game-service:dev
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: usfarcade-config
+            - secretRef:
+                name: usfarcade-db
+          env:
+            - name: PORT
+              value: "3002"
+            - name: SERVICE_NAME
+              value: game-service
+          ports:
+            - name: http
+              containerPort: 3002
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+          resources:
+            requests:
+              cpu: 75m
+              memory: 96Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: score-service
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: score-service
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: score-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: score-service
+        app.kubernetes.io/part-of: usfarcade
+    spec:
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: score-service
+          image: ghcr.io/OWNER/USFarcade/score-service:dev
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: usfarcade-config
+            - secretRef:
+                name: usfarcade-db
+          env:
+            - name: PORT
+              value: "3003"
+            - name: SERVICE_NAME
+              value: score-service
+          ports:
+            - name: http
+              containerPort: 3003
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 600m
+              memory: 384Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leaderboard-service
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: leaderboard-service
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: leaderboard-service
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: leaderboard-service
+        app.kubernetes.io/part-of: usfarcade
+    spec:
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: leaderboard-service
+          image: ghcr.io/OWNER/USFarcade/leaderboard-service:dev
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: usfarcade-config
+            - secretRef:
+                name: usfarcade-db
+          env:
+            - name: PORT
+              value: "3004"
+            - name: SERVICE_NAME
+              value: leaderboard-service
+          ports:
+            - name: http
+              containerPort: 3004
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "sleep 10"]
+          resources:
+            requests:
+              cpu: 75m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+

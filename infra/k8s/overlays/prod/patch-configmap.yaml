@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: usfarcade-config
+  namespace: usfarcade
+data:
+  FRONTEND_URL: https://arcade.example.com

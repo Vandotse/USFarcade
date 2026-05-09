@@ -1,0 +1,108 @@
+name: Deploy Kustomize overlay
+description: Deploy one USFarcade environment to EKS with immutable ECR image tags.
+
+inputs:
+  aws-account-id:
+    description: AWS account ID that owns the ECR repositories.
+    required: true
+  aws-region:
+    description: AWS region for EKS and ECR.
+    required: true
+  cluster-name:
+    description: EKS cluster name.
+    required: true
+  overlay:
+    description: Kustomize overlay name under infra/k8s/overlays.
+    required: true
+  namespace:
+    description: Kubernetes namespace.
+    required: true
+    default: usfarcade
+  image-tag:
+    description: Immutable image tag to deploy.
+    required: true
+  run-migrations:
+    description: Whether to rerun the schema migration job before rollout.
+    required: true
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Update kubeconfig
+      shell: bash
+      run: |
+        set -euo pipefail
+        aws eks update-kubeconfig \
+          --region "${{ inputs.aws-region }}" \
+          --name "${{ inputs.cluster-name }}"
+
+    - name: Apply environment manifests
+      shell: bash
+      run: |
+        set -euo pipefail
+        kubectl apply -k "infra/k8s/overlays/${{ inputs.overlay }}"
+
+    - name: Run schema migration
+      if: ${{ inputs.run-migrations == 'true' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        namespace="${{ inputs.namespace }}"
+
+        kubectl delete job usfarcade-schema-migration \
+          -n "${namespace}" \
+          --ignore-not-found
+
+        kubectl apply -k "infra/k8s/overlays/${{ inputs.overlay }}"
+
+        kubectl wait \
+          --for=condition=complete \
+          job/usfarcade-schema-migration \
+          -n "${namespace}" \
+          --timeout=180s
+
+    - name: Deploy immutable image tags
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        registry="${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com"
+        namespace="${{ inputs.namespace }}"
+        tag="${{ inputs.image-tag }}"
+
+        kubectl set image deployment/frontend \
+          frontend="${registry}/usfarcade/frontend:${tag}" \
+          -n "${namespace}"
+
+        kubectl set image deployment/player-service \
+          player-service="${registry}/usfarcade/player-service:${tag}" \
+          -n "${namespace}"
+
+        kubectl set image deployment/game-service \
+          game-service="${registry}/usfarcade/game-service:${tag}" \
+          -n "${namespace}"
+
+        kubectl set image deployment/score-service \
+          score-service="${registry}/usfarcade/score-service:${tag}" \
+          -n "${namespace}"
+
+        kubectl set image deployment/leaderboard-service \
+          leaderboard-service="${registry}/usfarcade/leaderboard-service:${tag}" \
+          -n "${namespace}"
+
+    - name: Wait for zero-downtime rollouts
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        namespace="${{ inputs.namespace }}"
+
+        kubectl rollout status deployment/frontend -n "${namespace}" --timeout=240s
+        kubectl rollout status deployment/player-service -n "${namespace}" --timeout=240s
+        kubectl rollout status deployment/game-service -n "${namespace}" --timeout=240s
+        kubectl rollout status deployment/score-service -n "${namespace}" --timeout=240s
+        kubectl rollout status deployment/leaderboard-service -n "${namespace}" --timeout=240s
+
+        kubectl get pods -n "${namespace}"
+        kubectl get ingress -n "${namespace}"

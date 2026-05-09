@@ -1,0 +1,21 @@
+aws_region  = "us-east-1"
+environment = "uat"
+
+create_iam_roles = true
+# cluster_role_arn = "arn:aws:iam::123456789012:role/LabRole"
+# node_role_arn    = "arn:aws:iam::123456789012:role/LabRole"
+
+vpc_cidr            = "10.50.0.0/16"
+kubernetes_version = "1.30"
+node_instance_types = ["t3.medium"]
+node_desired_size   = 3
+node_min_size       = 2
+node_max_size       = 5
+rds_instance_class  = "db.t3.micro"
+
+enable_dns         = true
+create_hosted_zone = false
+hosted_zone_name   = "evantestspa-demo.xyz"
+domain_name        = "uat.evantestspa-demo.xyz"
+hosted_zone_id     = "Z_REPLACE_WITH_ROUTE53_ZONE_FROM_DEV"
+wait_for_certificate_validation = true

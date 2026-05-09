@@ -1,0 +1,31 @@
+aws_region  = "us-east-1"
+environment = "dev"
+
+# AWS Academy note:
+# If the account blocks IAM creation, set create_iam_roles=false and provide role ARNs from Nadi/instructor.
+create_iam_roles = true
+# cluster_role_arn = "arn:aws:iam::123456789012:role/LabRole"
+# node_role_arn    = "arn:aws:iam::123456789012:role/LabRole"
+
+vpc_cidr            = "10.40.0.0/16"
+kubernetes_version = "1.30"
+node_instance_types = ["t3.medium"]
+node_desired_size   = 3
+node_min_size       = 2
+node_max_size       = 5
+rds_instance_class  = "db.t3.micro"
+
+# Option A: domain registered at Name.com, DNS delegated to Route53.
+enable_dns         = true
+create_hosted_zone = true
+hosted_zone_name   = "evantestspa-demo.xyz"
+domain_name        = "dev.evantestspa-demo.xyz"
+# First apply: false, so Terraform can output Route53 nameservers before Name.com is delegated.
+# After updating Name.com nameservers: set true and apply again.
+wait_for_certificate_validation = false
+# hosted_zone_id is only needed if create_hosted_zone=false.
+# hosted_zone_id = "Z_REPLACE_ME"
+
+# Add these after the ALB ingress is created if Terraform will manage the Route53 A record too.
+# alb_dns_name = "k8s-usfarcade-..."
+# alb_zone_id  = "Z35SXDOTRQ7X7K"

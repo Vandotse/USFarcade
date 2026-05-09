@@ -1,0 +1,86 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-usfarcade}
+      POSTGRES_USER: ${POSTGRES_USER:-usfarcade}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  player-service:
+    build: ./services/player-service
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://usfarcade:local-dev-password@postgres:5432/usfarcade}
+      PGSSLMODE: ${PGSSLMODE:-disable}
+      PORT: 3001
+      SERVICE_NAME: player-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+
+  game-service:
+    build: ./services/game-service
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://usfarcade:local-dev-password@postgres:5432/usfarcade}
+      PGSSLMODE: ${PGSSLMODE:-disable}
+      PORT: 3002
+      SERVICE_NAME: game-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3002:3002"
+
+  score-service:
+    build: ./services/score-service
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://usfarcade:local-dev-password@postgres:5432/usfarcade}
+      PGSSLMODE: ${PGSSLMODE:-disable}
+      PORT: 3003
+      SERVICE_NAME: score-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3003:3003"
+
+  leaderboard-service:
+    build: ./services/leaderboard-service
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://usfarcade:local-dev-password@postgres:5432/usfarcade}
+      PGSSLMODE: ${PGSSLMODE:-disable}
+      PORT: 3004
+      SERVICE_NAME: leaderboard-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3004:3004"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+    depends_on:
+      - player-service
+      - game-service
+      - score-service
+      - leaderboard-service
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres-data:
+

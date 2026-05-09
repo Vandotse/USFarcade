@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: frontend
+spec:
+  selector:
+    app.kubernetes.io/component: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: player-service
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: player-service
+spec:
+  selector:
+    app.kubernetes.io/component: player-service
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-service
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: game-service
+spec:
+  selector:
+    app.kubernetes.io/component: game-service
+  ports:
+    - name: http
+      port: 3002
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: score-service
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: score-service
+spec:
+  selector:
+    app.kubernetes.io/component: score-service
+  ports:
+    - name: http
+      port: 3003
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: leaderboard-service
+  namespace: usfarcade
+  labels:
+    app.kubernetes.io/component: leaderboard-service
+spec:
+  selector:
+    app.kubernetes.io/component: leaderboard-service
+  ports:
+    - name: http
+      port: 3004
+      targetPort: http
+

@@ -1,0 +1,75 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend
+  namespace: usfarcade
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: player-service
+  namespace: usfarcade
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: player-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: game-service
+  namespace: usfarcade
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: game-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: score-service
+  namespace: usfarcade
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: score-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: leaderboard-service
+  namespace: usfarcade
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: leaderboard-service
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: score-service
+  namespace: usfarcade
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: score-service
+  minReplicas: 3
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65
+

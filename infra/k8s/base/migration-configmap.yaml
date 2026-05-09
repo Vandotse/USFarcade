@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: usfarcade-schema-migration
+  namespace: usfarcade
+data:
+  migration.sql: |
+    BEGIN;
+
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+    CREATE TABLE IF NOT EXISTS players (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      display_name TEXT NOT NULL UNIQUE,
+      avatar_color TEXT NOT NULL DEFAULT '#14b8a6',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      last_seen_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS games (
+      slug TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      summary TEXT NOT NULL,
+      scoring_direction TEXT NOT NULL CHECK (scoring_direction IN ('ASC', 'DESC')),
+      rules JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS seasons (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      code TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      starts_at TIMESTAMPTZ NOT NULL,
+      ends_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CHECK (ends_at > starts_at)
+    );
+
+    CREATE TABLE IF NOT EXISTS scores (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+      game_slug TEXT NOT NULL REFERENCES games(slug) ON DELETE CASCADE,
+      season_id UUID REFERENCES seasons(id) ON DELETE SET NULL,
+      score_value INTEGER NOT NULL CHECK (score_value >= 0),
+      duration_ms INTEGER CHECK (duration_ms IS NULL OR duration_ms >= 0),
+      moves INTEGER CHECK (moves IS NULL OR moves >= 0),
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS achievements (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      code TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      game_slug TEXT REFERENCES games(slug) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE TABLE IF NOT EXISTS player_achievements (
+      player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+      achievement_id UUID NOT NULL REFERENCES achievements(id) ON DELETE CASCADE,
+      awarded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (player_id, achievement_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_scores_game_created ON scores(game_slug, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_scores_player_created ON scores(player_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_scores_season ON scores(season_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_players_display_name_lower_unique ON players (lower(display_name));
+
+    INSERT INTO games (slug, title, summary, scoring_direction, rules)
+    VALUES
+      (
+        'reaction-speed',
+        'Reaction Speed',
+        'Wait for the launch signal, then tap as fast as possible. Lowest reaction time wins.',
+        'ASC',
+        '{"metric":"milliseconds","ideal":"lower","minDelayMs":900,"maxDelayMs":2500}'::jsonb
+      ),
+      (
+        'memory-match',
+        'Memory Match',
+        'Flip cards, find pairs, and finish with fewer moves and less time.',
+        'DESC',
+        '{"metric":"points","ideal":"higher","pairs":8}'::jsonb
+      )
+    ON CONFLICT (slug) DO UPDATE
+    SET title = EXCLUDED.title,
+        summary = EXCLUDED.summary,
+        scoring_direction = EXCLUDED.scoring_direction,
+        rules = EXCLUDED.rules;
+
+    INSERT INTO seasons (code, title, starts_at, ends_at)
+    VALUES ('preseason', 'Preseason Sprint', '2026-01-01T00:00:00Z', '2027-01-01T00:00:00Z')
+    ON CONFLICT (code) DO NOTHING;
+
+    INSERT INTO achievements (code, title, description, game_slug)
+    VALUES
+      ('sub-250', 'Sub 250 Club', 'Submit a reaction time under 250 ms.', 'reaction-speed'),
+      ('perfect-grid', 'Perfect Grid', 'Complete Memory Match in 12 moves or fewer.', 'memory-match')
+    ON CONFLICT (code) DO UPDATE
+    SET title = EXCLUDED.title,
+        description = EXCLUDED.description,
+        game_slug = EXCLUDED.game_slug;
+
+    COMMIT;

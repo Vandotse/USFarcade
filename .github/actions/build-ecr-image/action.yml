@@ -1,0 +1,57 @@
+name: Build ECR image
+description: Build and push one USFarcade service image to Amazon ECR.
+
+inputs:
+  aws-account-id:
+    description: AWS account ID that owns the ECR repositories.
+    required: true
+  aws-region:
+    description: AWS region for ECR.
+    required: true
+  service:
+    description: Service name, matching the ECR repository suffix.
+    required: true
+  context:
+    description: Docker build context.
+    required: true
+  image-tag:
+    description: Immutable image tag for this workflow run.
+    required: true
+  extra-tags:
+    description: Optional comma-separated additional tags, such as dev, qa, rc, stable.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Build image tag list
+      id: tags
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        registry="${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com"
+        image="${registry}/usfarcade/${{ inputs.service }}"
+
+        {
+          echo "tags<<EOF"
+          echo "${image}:${{ inputs.image-tag }}"
+          IFS=',' read -ra tags <<< "${{ inputs.extra-tags }}"
+          for tag in "${tags[@]}"; do
+            tag="$(echo "${tag}" | xargs)"
+            if [ -n "${tag}" ]; then
+              echo "${image}:${tag}"
+            fi
+          done
+          echo "EOF"
+        } >> "${GITHUB_OUTPUT}"
+
+    - name: Build and push image
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.context }}
+        platforms: linux/amd64
+        push: true
+        provenance: false
+        tags: ${{ steps.tags.outputs.tags }}

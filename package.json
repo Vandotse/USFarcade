@@ -1,0 +1,13 @@
+{
+  "name": "usfarcade-bytebattle-arena",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Assignment-ready arcade app with React, PostgreSQL, microservices, Kubernetes, Terraform, and Git-driven promotion.",
+  "scripts": {
+    "dev": "docker compose up --build",
+    "down": "docker compose down",
+    "check": "node --check services/player-service/src/index.js && node --check services/game-service/src/index.js && node --check services/score-service/src/index.js && node --check services/leaderboard-service/src/index.js",
+    "frontend:build": "npm --prefix frontend run build"
+  }
+}
+
