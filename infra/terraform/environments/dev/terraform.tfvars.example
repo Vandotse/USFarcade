@@ -29,3 +29,9 @@ wait_for_certificate_validation = false
 # Add these after the ALB ingress is created if Terraform will manage the Route53 A record too.
 # alb_dns_name = "k8s-usfarcade-..."
 # alb_zone_id  = "Z35SXDOTRQ7X7K"
+
+# Self-hosted Grafana external access. First apply creates and validates the ACM cert.
+grafana_domain_name = "grafana.dev.evantestspa-demo.xyz"
+# Add these after the Grafana ALB ingress exists if Terraform will manage its Route53 A record.
+# grafana_alb_dns_name = "k8s-monitoring-..."
+# grafana_alb_zone_id  = "Z35SXDOTRQ7X7K"

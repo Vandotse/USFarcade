@@ -111,6 +111,24 @@ variable "alb_zone_id" {
   default     = null
 }
 
+variable "grafana_domain_name" {
+  description = "External DNS name for self-hosted Grafana, such as grafana.dev.example.com."
+  type        = string
+  default     = null
+}
+
+variable "grafana_alb_dns_name" {
+  description = "Set after the Grafana ALB ingress exists if Route53 A record should be managed here."
+  type        = string
+  default     = null
+}
+
+variable "grafana_alb_zone_id" {
+  description = "Set after the Grafana ALB ingress exists if Route53 A record should be managed here."
+  type        = string
+  default     = null
+}
+
 variable "github_repository" {
   description = "GitHub repository allowed to assume the GitHub Actions deploy role, in owner/name form."
   type        = string

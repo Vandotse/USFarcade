@@ -15,6 +15,10 @@ output "certificate_arn" {
   value = var.enable_dns ? module.dns[0].certificate_arn : null
 }
 
+output "grafana_certificate_arn" {
+  value = var.enable_dns && var.grafana_domain_name != null ? module.grafana_dns[0].certificate_arn : null
+}
+
 output "hosted_zone_id" {
   value = var.enable_dns ? module.dns[0].hosted_zone_id : null
 }

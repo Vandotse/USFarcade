@@ -70,6 +70,20 @@ module "dns" {
   tags                            = local.tags
 }
 
+module "grafana_dns" {
+  count  = var.enable_dns && var.grafana_domain_name != null ? 1 : 0
+  source = "../../modules/dns"
+
+  create_hosted_zone              = false
+  hosted_zone_name                = var.hosted_zone_name
+  domain_name                     = var.grafana_domain_name
+  wait_for_certificate_validation = var.wait_for_certificate_validation
+  hosted_zone_id                  = var.enable_dns ? module.dns[0].hosted_zone_id : var.hosted_zone_id
+  alb_dns_name                    = var.grafana_alb_dns_name
+  alb_zone_id                     = var.grafana_alb_zone_id
+  tags                            = local.tags
+}
+
 resource "kubernetes_namespace" "app" {
   metadata {
     name = "usfarcade"

@@ -1,0 +1,140 @@
+fullnameOverride: kube-prometheus-stack
+
+prometheus:
+  prometheusSpec:
+    replicas: 2
+    retention: 7d
+    retentionSize: 8GB
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        cpu: 1
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  alertmanagerSpec:
+    replicas: 2
+    secrets:
+      - alertmanager-slack-webhook
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by:
+        - alertname
+        - namespace
+        - pod
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+      receiver: slack-critical
+      routes:
+        - matchers:
+            - severity="critical"
+          receiver: slack-critical
+    receivers:
+      - name: slack-critical
+        slack_configs:
+          - api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhook/url
+            channel: "#alerts"
+            send_resolved: true
+            title: "[USFarcade] {{ .CommonLabels.alertname }}"
+            text: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}\n{{ end }}"
+
+grafana:
+  enabled: true
+  replicas: 2
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  grafana.ini:
+    server:
+      root_url: https://grafana.dev.evantestspa-demo.xyz
+    auth:
+      disable_login_form: true
+      disable_signout_menu: false
+    auth.basic:
+      enabled: false
+    auth.github:
+      enabled: true
+      allow_sign_up: true
+      scopes: read:user user:email
+      auth_url: https://github.com/login/oauth/authorize
+      token_url: https://github.com/login/oauth/access_token
+      api_url: https://api.github.com/user
+      client_id: $__file{/etc/secrets/auth_github/client_id}
+      client_secret: $__file{/etc/secrets/auth_github/client_secret}
+  extraSecretMounts:
+    - name: auth-github
+      secretName: grafana-oauth
+      defaultMode: 0440
+      mountPath: /etc/secrets/auth_github
+      readOnly: true
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      jsonData:
+        maxLines: 1000
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+kube-state-metrics:
+  enabled: true
+
+prometheus-node-exporter:
+  enabled: true
+
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: false
+    kubeApiserver: true
+    kubeControllerManager: false
+    kubeScheduler: false
+    kubelet: true
+    kubernetesApps: true
+    kubernetesResources: true
+    node: true
+    prometheus: true

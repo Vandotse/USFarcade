@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: usfarcade-critical-resource-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: usfarcade.node.resources
+      rules:
+        - alert: NodeCpuCritical
+          expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node CPU is above 85%"
+            description: "Node {{ $labels.instance }} has sustained CPU usage above 85% for 10 minutes."
+        - alert: NodeMemoryCritical
+          expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node memory is above 85%"
+            description: "Node {{ $labels.instance }} has sustained memory usage above 85% for 10 minutes."
+        - alert: NodeDiskCritical
+          expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay",mountpoint="/"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay",mountpoint="/"})) * 100 > 85
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Node disk is above 85%"
+            description: "Node {{ $labels.instance }} root filesystem usage is above 85% for 10 minutes."
+        - alert: PodCrashLoopingCritical
+          expr: increase(kube_pod_container_status_restarts_total{namespace="usfarcade"}[10m]) > 3
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "USFarcade pod is restarting repeatedly"
+            description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} restarted more than 3 times in 10 minutes."
