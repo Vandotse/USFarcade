@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: usfarcade-demo-slack-alert
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: usfarcade.demo.alerts
+      rules:
+        - alert: USFarcadeDemoSlackAlert
+          expr: vector(1)
+          for: 1m
+          labels:
+            severity: critical
+            demo: "true"
+          annotations:
+            summary: "USFarcade demo alert is firing"
+            description: "This temporary alert proves Alertmanager can route critical alerts to Slack. Delete infra/k8s/observability/demo-slack-alert.yaml after verification."
