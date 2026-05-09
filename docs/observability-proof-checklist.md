@@ -4,6 +4,12 @@ Use this checklist to prove the observability rubric before moving into the Day 
 
 ## 1. Cluster Health
 
+If your AWS SSO token expired, refresh it first:
+
+```bash
+AWS_PROFILE=usfarcade aws sso login
+```
+
 ```bash
 kubectl get pods -n monitoring
 kubectl get pods -n usfarcade
@@ -107,4 +113,3 @@ Capture screenshots or show live:
 - Loki Explore query across all backend services
 - Slack alert message from `USFarcadeDemoSlackAlert`
 - `kubectl get pods -n monitoring`
-
