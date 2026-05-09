@@ -52,6 +52,14 @@ Homepage URL: https://grafana.dev.evantestspa-demo.xyz
 Authorization callback URL: https://grafana.dev.evantestspa-demo.xyz/login/github
 ```
 
+Grafana requests these GitHub scopes:
+
+```text
+read:user user:email read:org
+```
+
+`read:org` is required because Grafana's GitHub auth provider checks organization/team membership during login.
+
 Create the Kubernetes secret:
 
 ```bash
