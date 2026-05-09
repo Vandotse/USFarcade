@@ -79,6 +79,29 @@ If Slack is not available, swap the Alertmanager receiver in `kube-prometheus-st
 
 ## 4. Install Prometheus, Grafana, Alertmanager, Loki
 
+The right storage path is EBS-backed persistence through the EKS EBS CSI driver. The add-on and its IAM role are managed by Terraform.
+
+If the EBS CSI add-on was created manually before Terraform owned it, import it once:
+
+```bash
+AWS_PROFILE=usfarcade terraform -chdir=infra/terraform/environments/dev import \
+  aws_eks_addon.ebs_csi_driver \
+  usfarcade-dev:aws-ebs-csi-driver
+```
+
+Then apply Terraform so the add-on receives the IRSA role with `AmazonEBSCSIDriverPolicy`:
+
+```bash
+AWS_PROFILE=usfarcade terraform -chdir=infra/terraform/environments/dev apply
+```
+
+Verify the controller is healthy:
+
+```bash
+kubectl get pods -n kube-system | grep ebs
+kubectl get sa ebs-csi-controller-sa -n kube-system -o yaml | grep eks.amazonaws.com/role-arn
+```
+
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add grafana https://grafana.github.io/helm-charts
