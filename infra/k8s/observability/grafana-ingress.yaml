@@ -10,7 +10,7 @@ metadata:
     alb.ingress.kubernetes.io/healthcheck-path: /api/health
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
-    alb.ingress.kubernetes.io/certificate-arn: GRAFANA_CERTIFICATE_ARN_REPLACE_ME
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:881933021016:certificate/d1a3bd39-f470-4c6d-9556-e9f9fc30dab9
 spec:
   rules:
     - host: grafana.dev.evantestspa-demo.xyz

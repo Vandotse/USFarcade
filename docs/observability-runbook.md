@@ -97,6 +97,24 @@ kubectl apply -f infra/k8s/observability/critical-resource-alerts.yaml
 kubectl apply -f infra/k8s/observability/grafana-ingress.yaml
 ```
 
+If pods are stuck in `Pending` with `pod has unbound immediate PersistentVolumeClaims`, confirm the cluster storage class:
+
+```bash
+kubectl get storageclass
+```
+
+This repo's values use the default EKS `gp2` storage class explicitly. If PVCs were already created before that setting was present, delete only the pending monitoring PVCs and rerun the Helm upgrades:
+
+```bash
+kubectl delete pvc -n monitoring \
+  alertmanager-kube-prometheus-stack-alertmanager-db-alertmanager-kube-prometheus-stack-alertmanager-0 \
+  alertmanager-kube-prometheus-stack-alertmanager-db-alertmanager-kube-prometheus-stack-alertmanager-1 \
+  kube-prometheus-stack-grafana \
+  prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-0 \
+  prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-1 \
+  storage-loki-0
+```
+
 ## 5. Create the Grafana DNS Record
 
 Wait for the Grafana ALB:

@@ -19,6 +19,7 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
+          storageClassName: gp2
           accessModes:
             - ReadWriteOnce
           resources:
@@ -33,6 +34,7 @@ alertmanager:
     storage:
       volumeClaimTemplate:
         spec:
+          storageClassName: gp2
           accessModes:
             - ReadWriteOnce
           resources:
@@ -108,6 +110,7 @@ grafana:
         maxLines: 1000
   persistence:
     enabled: true
+    storageClassName: gp2
     accessModes:
       - ReadWriteOnce
     size: 5Gi

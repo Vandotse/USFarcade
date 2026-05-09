@@ -3,6 +3,7 @@ loki:
   isDefault: false
   persistence:
     enabled: true
+    storageClassName: gp2
     size: 20Gi
   config:
     auth_enabled: false
