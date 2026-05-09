@@ -188,7 +188,7 @@ In Grafana, use the built-in Kubernetes dashboards to show:
 - pod restarts
 - workload health
 
-Grafana intentionally runs as one replica with a `Recreate` deployment strategy in this demo because the chart uses its local SQLite database on one EBS `ReadWriteOnce` volume. Prometheus and Alertmanager still run with two replicas; production Grafana HA would use an external database such as PostgreSQL.
+Grafana intentionally runs as one replica with `maxSurge: 0` and `maxUnavailable: 1` in this demo because the chart uses its local SQLite database on one EBS `ReadWriteOnce` volume. That makes Kubernetes remove the old Grafana pod before creating the replacement. Prometheus and Alertmanager still run with two replicas; production Grafana HA would use an external database such as PostgreSQL.
 
 ## 7. Verify Logs
 
