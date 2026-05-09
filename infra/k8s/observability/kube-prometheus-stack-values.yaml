@@ -68,6 +68,8 @@ alertmanager:
 grafana:
   enabled: true
   replicas: 1
+  deploymentStrategy:
+    type: Recreate
   admin:
     existingSecret: grafana-admin
     userKey: admin-user
