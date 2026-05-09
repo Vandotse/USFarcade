@@ -85,10 +85,14 @@ grafana:
       disable_signout_menu: false
     auth.basic:
       enabled: false
+    users:
+      auto_assign_org_role: Editor
     auth.github:
       enabled: true
       allow_sign_up: true
       scopes: read:user user:email read:org
+      role_attribute_path: "'Editor'"
+      skip_org_role_sync: false
       auth_url: https://github.com/login/oauth/authorize
       token_url: https://github.com/login/oauth/access_token
       api_url: https://api.github.com/user

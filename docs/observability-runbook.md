@@ -14,6 +14,7 @@ https://grafana.dev.evantestspa-demo.xyz
 ```
 
 Local username/password login is disabled. GitHub OAuth is the intended access path.
+GitHub OAuth maps demo users to the Grafana `Editor` organization role so Explore is available for Loki log queries without enabling local username/password access.
 
 ## 1. Create the Grafana DNS Certificate
 
