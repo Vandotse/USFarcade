@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       promote: ${{ steps.gate.outputs.promote }}
-      image-tag: ${{ steps.gate.outputs.image_tag }}
+      image_tag: ${{ steps.gate.outputs.image_tag }}
     steps:
       - id: gate
         shell: bash
@@ -88,7 +88,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           service: ${{ matrix.service }}
           context: ${{ matrix.context }}
-          image-tag: ${{ needs.gate.outputs.image-tag }}
+          image-tag: ${{ needs.gate.outputs.image_tag }}
           extra-tags: rc
 
   deploy:
@@ -114,5 +114,5 @@ jobs:
           cluster-name: ${{ env.EKS_CLUSTER_UAT }}
           overlay: uat
           namespace: ${{ env.K8S_NAMESPACE }}
-          image-tag: ${{ needs.gate.outputs.image-tag }}
+          image-tag: ${{ needs.gate.outputs.image_tag }}
           run-migrations: "true"
