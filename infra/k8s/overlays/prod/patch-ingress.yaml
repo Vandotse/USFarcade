@@ -4,10 +4,12 @@ metadata:
   name: usfarcade
   namespace: usfarcade
   annotations:
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:REGION:ACCOUNT_ID:certificate/PROD_CERT_ID
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:881933021016:certificate/9400017a-a0f9-4401-b2c7-9886305e980c
 spec:
   rules:
-    - host: arcade.example.com
+    - host: dev.evantestspa-demo.xyz
       http:
         paths:
           - path: /

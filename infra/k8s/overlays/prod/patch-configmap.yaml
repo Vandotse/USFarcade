@@ -4,4 +4,4 @@ metadata:
   name: usfarcade-config
   namespace: usfarcade
 data:
-  FRONTEND_URL: https://arcade.example.com
+  FRONTEND_URL: https://dev.evantestspa-demo.xyz
