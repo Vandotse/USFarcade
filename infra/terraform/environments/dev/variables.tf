@@ -110,3 +110,9 @@ variable "alb_zone_id" {
   type        = string
   default     = null
 }
+
+variable "github_repository" {
+  description = "GitHub repository allowed to assume the GitHub Actions deploy role, in owner/name form."
+  type        = string
+  default     = "Vandotse/USFarcade"
+}

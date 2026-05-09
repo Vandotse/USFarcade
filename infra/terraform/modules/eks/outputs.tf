@@ -2,6 +2,10 @@ output "cluster_name" {
   value = aws_eks_cluster.this.name
 }
 
+output "cluster_arn" {
+  value = aws_eks_cluster.this.arn
+}
+
 output "cluster_endpoint" {
   value = aws_eks_cluster.this.endpoint
 }
@@ -16,6 +20,10 @@ output "cluster_security_group_id" {
 
 output "node_group_name" {
   value = aws_eks_node_group.primary.node_group_name
+}
+
+output "node_role_arn" {
+  value = local.node_role_arn
 }
 
 output "oidc_issuer_url" {

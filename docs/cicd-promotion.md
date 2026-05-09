@@ -27,7 +27,7 @@ Set these in GitHub under `Settings -> Secrets and variables -> Actions -> Varia
 ```text
 AWS_ACCOUNT_ID=881933021016
 AWS_REGION=us-east-1
-AWS_ROLE_TO_ASSUME=<terraform-managed-github-actions-role-arn>
+AWS_ROLE_TO_ASSUME=arn:aws:iam::881933021016:role/usfarcade-dev-github-actions-deploy
 EKS_CLUSTER_DEV=usfarcade-dev
 EKS_CLUSTER_UAT=usfarcade-uat
 EKS_CLUSTER_PROD=usfarcade-prod
