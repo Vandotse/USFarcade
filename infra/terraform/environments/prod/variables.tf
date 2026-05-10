@@ -63,6 +63,18 @@ variable "node_max_size" {
   default = 5
 }
 
+variable "node_release_version" {
+  description = "EKS optimized AMI release version for node patching. Use latest, an explicit release, or null."
+  type        = string
+  default     = null
+}
+
+variable "node_force_update_version" {
+  description = "Force an EKS managed node group version update during controlled patch demos."
+  type        = bool
+  default     = false
+}
+
 variable "rds_instance_class" {
   type    = string
   default = "db.t3.micro"
