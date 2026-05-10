@@ -70,6 +70,17 @@ variable "node_force_update_version" {
   default     = false
 }
 
+variable "node_group_rotation_id" {
+  description = "Stable suffix for the managed node group name. Change this value, for example from primary to patch-001, to force a create-before-destroy node group rotation for a Day 2 patch wave."
+  type        = string
+  default     = "primary"
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]{0,31}$", var.node_group_rotation_id))
+    error_message = "node_group_rotation_id must be 1-32 lowercase letters, numbers, or hyphens, and must start with a letter or number."
+  }
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

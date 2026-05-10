@@ -87,7 +87,7 @@ resource "aws_eks_cluster" "this" {
 
 resource "aws_eks_node_group" "primary" {
   cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "${var.name}-primary"
+  node_group_name = "${var.name}-${var.node_group_rotation_id}"
   node_role_arn   = local.node_role_arn
   subnet_ids      = var.private_subnet_ids
 
@@ -110,9 +110,14 @@ resource "aws_eks_node_group" "primary" {
 
   labels = {
     workload = "general"
+    rotation = var.node_group_rotation_id
   }
 
   tags = var.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   depends_on = [aws_iam_role_policy_attachment.node]
 }

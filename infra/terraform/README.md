@@ -94,3 +94,12 @@ The node group has:
 
 That lets Kubernetes drain and replace one node at a time while keeping service endpoints available.
 
+For a guaranteed live patch-wave demo, set a new local rotation ID in `terraform.tfvars`:
+
+```hcl
+node_release_version      = "latest"
+node_force_update_version = true
+node_group_rotation_id    = "patch-001"
+```
+
+Changing `node_group_rotation_id` changes the managed node group name. Terraform uses `create_before_destroy` to create the new node group before deleting the old one, which makes node replacement visible even if the cluster is already on the latest recommended AMI release.

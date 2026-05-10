@@ -76,6 +76,12 @@ variable "node_force_update_version" {
   default     = false
 }
 
+variable "node_group_rotation_id" {
+  description = "Managed node group suffix. Change this to force a create-before-destroy patch wave."
+  type        = string
+  default     = "primary"
+}
+
 variable "rds_instance_class" {
   type    = string
   default = "db.t3.micro"

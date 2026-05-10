@@ -34,6 +34,7 @@ module "eks" {
   node_max_size             = var.node_max_size
   node_release_version      = var.node_release_version
   node_force_update_version = var.node_force_update_version
+  node_group_rotation_id    = var.node_group_rotation_id
   tags                      = local.tags
 }
 
