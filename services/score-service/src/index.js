@@ -61,6 +61,18 @@ function toScore(row) {
   };
 }
 
+function toAchievement(row) {
+  return {
+    code: row.code,
+    title: row.title,
+    description: row.description,
+    gameSlug: row.game_slug,
+    icon: row.icon,
+    rarity: row.rarity,
+    awardedAt: row.awarded_at
+  };
+}
+
 function readInteger(value, name, allowNull = false) {
   if (value === null || value === undefined || value === "") {
     if (allowNull) return null;
@@ -77,16 +89,31 @@ async function awardAchievements(client, playerId, gameSlug, scoreValue, moves) 
   const achievementCodes = [];
   if (gameSlug === "reaction-speed" && scoreValue < 250) achievementCodes.push("sub-250");
   if (gameSlug === "memory-match" && moves !== null && moves <= 12) achievementCodes.push("perfect-grid");
-  if (achievementCodes.length === 0) return;
+  if (achievementCodes.length === 0) return [];
 
-  await client.query(
-    `INSERT INTO player_achievements (player_id, achievement_id)
-     SELECT $1, id
-     FROM achievements
-     WHERE code = ANY($2::text[])
-     ON CONFLICT DO NOTHING`,
+  const { rows } = await client.query(
+    `WITH newly_awarded AS (
+       INSERT INTO player_achievements (player_id, achievement_id)
+       SELECT $1, id
+       FROM achievements
+       WHERE code = ANY($2::text[])
+       ON CONFLICT DO NOTHING
+       RETURNING achievement_id, awarded_at
+     )
+     SELECT
+       a.code,
+       a.title,
+       a.description,
+       a.game_slug,
+       a.icon,
+       a.rarity,
+       newly_awarded.awarded_at
+     FROM newly_awarded
+     JOIN achievements a ON a.id = newly_awarded.achievement_id
+     ORDER BY newly_awarded.awarded_at DESC`,
     [playerId, achievementCodes]
   );
+  return rows.map(toAchievement);
 }
 
 app.get("/healthz", (_request, response) => {
@@ -157,11 +184,14 @@ app.post("/scores", async (request, response, next) => {
       [playerId, gameSlug, season.rows[0]?.id || null, scoreValue, durationMs, moves, metadata]
     );
 
-    await awardAchievements(client, playerId, gameSlug, scoreValue, moves);
+    const awardedAchievements = await awardAchievements(client, playerId, gameSlug, scoreValue, moves);
     await client.query("UPDATE players SET last_seen_at = now() WHERE id = $1", [playerId]);
     await client.query("COMMIT");
 
-    response.status(201).json({ score: toScore(insert.rows[0]) });
+    response.status(201).json({
+      score: toScore(insert.rows[0]),
+      awardedAchievements
+    });
   } catch (error) {
     await client.query("ROLLBACK").catch(() => {});
     if (error.message.includes("required") || error.message.includes("non-negative")) {

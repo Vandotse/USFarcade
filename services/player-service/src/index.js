@@ -57,6 +57,18 @@ function toPlayer(row) {
   };
 }
 
+function toAchievement(row) {
+  return {
+    code: row.code,
+    title: row.title,
+    description: row.description,
+    gameSlug: row.game_slug,
+    icon: row.icon,
+    rarity: row.rarity,
+    awardedAt: row.awarded_at
+  };
+}
+
 function cleanName(value) {
   return String(value || "")
     .trim()
@@ -109,6 +121,39 @@ app.get("/players/:id", async (request, response, next) => {
       return;
     }
     response.json({ player: toPlayer(rows[0]) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/players/:id/achievements", async (request, response, next) => {
+  try {
+    const player = await pool.query("SELECT * FROM players WHERE id = $1", [request.params.id]);
+    if (!player.rows[0]) {
+      response.status(404).json({ error: "Player not found" });
+      return;
+    }
+
+    const { rows } = await pool.query(
+      `SELECT
+         a.code,
+         a.title,
+         a.description,
+         a.game_slug,
+         a.icon,
+         a.rarity,
+         pa.awarded_at
+       FROM player_achievements pa
+       JOIN achievements a ON a.id = pa.achievement_id
+       WHERE pa.player_id = $1
+       ORDER BY pa.awarded_at DESC, a.title ASC`,
+      [request.params.id]
+    );
+
+    response.json({
+      player: toPlayer(player.rows[0]),
+      achievements: rows.map(toAchievement)
+    });
   } catch (error) {
     next(error);
   }

@@ -53,9 +53,15 @@ data:
       code TEXT NOT NULL UNIQUE,
       title TEXT NOT NULL,
       description TEXT NOT NULL,
+      icon TEXT NOT NULL DEFAULT 'award',
+      rarity TEXT NOT NULL DEFAULT 'bronze',
       game_slug TEXT REFERENCES games(slug) ON DELETE CASCADE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+
+    ALTER TABLE achievements
+      ADD COLUMN IF NOT EXISTS icon TEXT NOT NULL DEFAULT 'award',
+      ADD COLUMN IF NOT EXISTS rarity TEXT NOT NULL DEFAULT 'bronze';
 
     CREATE TABLE IF NOT EXISTS player_achievements (
       player_id UUID NOT NULL REFERENCES players(id) ON DELETE CASCADE,
@@ -95,13 +101,15 @@ data:
     VALUES ('preseason', 'Preseason Sprint', '2026-01-01T00:00:00Z', '2027-01-01T00:00:00Z')
     ON CONFLICT (code) DO NOTHING;
 
-    INSERT INTO achievements (code, title, description, game_slug)
+    INSERT INTO achievements (code, title, description, game_slug, icon, rarity)
     VALUES
-      ('sub-250', 'Sub 250 Club', 'Submit a reaction time under 250 ms.', 'reaction-speed'),
-      ('perfect-grid', 'Perfect Grid', 'Complete Memory Match in 12 moves or fewer.', 'memory-match')
+      ('sub-250', 'Sub 250 Club', 'Submit a reaction time under 250 ms.', 'reaction-speed', 'zap', 'gold'),
+      ('perfect-grid', 'Perfect Grid', 'Complete Memory Match in 12 moves or fewer.', 'memory-match', 'brain', 'silver')
     ON CONFLICT (code) DO UPDATE
     SET title = EXCLUDED.title,
         description = EXCLUDED.description,
-        game_slug = EXCLUDED.game_slug;
+        game_slug = EXCLUDED.game_slug,
+        icon = EXCLUDED.icon,
+        rarity = EXCLUDED.rarity;
 
     COMMIT;

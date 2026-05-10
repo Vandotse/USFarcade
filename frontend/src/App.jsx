@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
+  Award,
   Brain,
   Gamepad2,
   RefreshCw,
@@ -11,13 +12,19 @@ import {
   UserRound,
   Zap
 } from "lucide-react";
-import { createPlayer, getLeaderboard, listGames, submitScore } from "./lib/api.js";
+import { createPlayer, getLeaderboard, getPlayerAchievements, listGames, submitScore } from "./lib/api.js";
 import { MemoryMatch } from "./components/MemoryMatch.jsx";
 import { ReactionSpeed } from "./components/ReactionSpeed.jsx";
 
 const gameIcons = {
   "reaction-speed": Zap,
   "memory-match": Brain
+};
+
+const badgeIcons = {
+  award: Award,
+  brain: Brain,
+  zap: Zap
 };
 
 const avatarColors = ["#14b8a6", "#f97316", "#e11d48", "#8b5cf6", "#22c55e", "#0ea5e9"];
@@ -84,6 +91,7 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [playerName, setPlayerName] = useState(player?.displayName || "");
   const [avatarColor, setAvatarColor] = useState(player?.avatarColor || avatarColors[0]);
+  const [achievements, setAchievements] = useState([]);
   const [status, setStatus] = useState("Ready for battle.");
   const [isBusy, setIsBusy] = useState(false);
 
@@ -98,6 +106,20 @@ export default function App() {
       setLeaderboard(data.leaderboard || []);
     } catch (error) {
       setStatus(`Leaderboard unavailable: ${error.message}`);
+    }
+  }
+
+  async function refreshAchievements(playerId = player?.id) {
+    if (!playerId) {
+      setAchievements([]);
+      return;
+    }
+
+    try {
+      const data = await getPlayerAchievements(playerId);
+      setAchievements(data.achievements || []);
+    } catch (error) {
+      setStatus(`Badges unavailable: ${error.message}`);
     }
   }
 
@@ -123,6 +145,10 @@ export default function App() {
     }
   }, [selectedGame]);
 
+  useEffect(() => {
+    refreshAchievements(player?.id);
+  }, [player?.id]);
+
   async function handleCreatePlayer(event) {
     event.preventDefault();
     const cleanName = playerName.trim();
@@ -137,6 +163,7 @@ export default function App() {
       setPlayer(data.player);
       savePlayer(data.player);
       setStatus(`Profile locked in for ${data.player.displayName}.`);
+      await refreshAchievements(data.player.id);
     } catch (error) {
       setStatus(`Could not save player: ${error.message}`);
     } finally {
@@ -157,8 +184,19 @@ export default function App() {
         gameSlug: selectedGame,
         ...score
       });
-      setStatus(`Score submitted: ${formatScore(selectedGame, data.score.scoreValue)}.`);
+      if (data.awardedAchievements?.length) {
+        setAchievements((current) => {
+          const seen = new Set(current.map((achievement) => achievement.code));
+          return [...data.awardedAchievements.filter((achievement) => !seen.has(achievement.code)), ...current];
+        });
+        setStatus(
+          `Score submitted: ${formatScore(selectedGame, data.score.scoreValue)}. Badge unlocked: ${data.awardedAchievements[0].title}.`
+        );
+      } else {
+        setStatus(`Score submitted: ${formatScore(selectedGame, data.score.scoreValue)}.`);
+      }
       await refreshLeaderboard(selectedGame);
+      await refreshAchievements(player.id);
     } catch (error) {
       setStatus(`Score rejected: ${error.message}`);
     } finally {
@@ -236,9 +274,35 @@ export default function App() {
               </button>
             </form>
             {player && (
-              <div className="player-chip">
-                <span style={{ backgroundColor: player.avatarColor }} />
-                {player.displayName}
+              <div className="profile-summary">
+                <div className="player-chip">
+                  <span style={{ backgroundColor: player.avatarColor }} />
+                  {player.displayName}
+                </div>
+                <div className="badge-shelf" aria-label="Player badges">
+                  <div className="badge-heading">
+                    <Award size={16} />
+                    <span>Badges</span>
+                  </div>
+                  {achievements.length > 0 ? (
+                    <ul>
+                      {achievements.map((achievement) => {
+                        const Icon = badgeIcons[achievement.icon] || Award;
+                        return (
+                          <li key={achievement.code} className={`badge-card ${achievement.rarity}`}>
+                            <Icon size={16} />
+                            <span>
+                              <strong>{achievement.title}</strong>
+                              <small>{achievement.description}</small>
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p>No badges yet. A clean run can change that.</p>
+                  )}
+                </div>
               </div>
             )}
           </div>
