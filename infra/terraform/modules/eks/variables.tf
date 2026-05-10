@@ -58,8 +58,19 @@ variable "node_max_size" {
   default = 5
 }
 
+variable "node_release_version" {
+  description = "EKS optimized AMI release version for the managed node group. Set to latest to read the current AL2023 recommendation from SSM, set an explicit release version to pin, or leave null to let EKS choose."
+  type        = string
+  default     = null
+}
+
+variable "node_force_update_version" {
+  description = "Force a managed node group version update even if pods cannot drain cleanly. Keep false normally; use true for controlled Day 2 patch demos if needed."
+  type        = bool
+  default     = false
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
 }
-
