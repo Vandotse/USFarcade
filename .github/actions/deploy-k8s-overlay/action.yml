@@ -43,14 +43,6 @@ runs:
         set -euo pipefail
         kubectl apply -k "infra/k8s/overlays/${{ inputs.overlay }}"
 
-    - name: Apply canary rollout controls
-      shell: bash
-      run: |
-        set -euo pipefail
-        if [ -f "infra/k8s/rollouts/kustomization.yaml" ]; then
-          kubectl apply -k infra/k8s/rollouts
-        fi
-
     - name: Run schema migration
       if: ${{ inputs.run-migrations == 'true' }}
       shell: bash
@@ -100,12 +92,15 @@ runs:
           -n "${namespace}"
 
         if kubectl get rollout score-service -n "${namespace}" >/dev/null 2>&1; then
-          kubectl set image deployment/score-service \
-            score-service="${registry}/usfarcade/score-service:${tag}" \
-            -n "${namespace}"
+          score_image="${registry}/usfarcade/score-service:${tag}"
 
           kubectl scale deployment/score-service \
             --replicas=0 \
+            -n "${namespace}"
+
+          kubectl patch rollout score-service \
+            --type='json' \
+            -p="[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/image\",\"value\":\"${score_image}\"}]" \
             -n "${namespace}"
         else
           kubectl set image deployment/score-service \
