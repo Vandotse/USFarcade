@@ -70,6 +70,14 @@ runs:
           -n "${namespace}" \
           --timeout=180s
 
+    - name: Reconcile canary rollout controls
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -f "infra/k8s/rollouts/kustomization.yaml" ]; then
+          kubectl apply -k infra/k8s/rollouts
+        fi
+
     - name: Deploy immutable image tags
       shell: bash
       run: |
@@ -91,9 +99,19 @@ runs:
           game-service="${registry}/usfarcade/game-service:${tag}" \
           -n "${namespace}"
 
-        kubectl set image deployment/score-service \
-          score-service="${registry}/usfarcade/score-service:${tag}" \
-          -n "${namespace}"
+        if kubectl get rollout score-service -n "${namespace}" >/dev/null 2>&1; then
+          kubectl set image deployment/score-service \
+            score-service="${registry}/usfarcade/score-service:${tag}" \
+            -n "${namespace}"
+
+          kubectl scale deployment/score-service \
+            --replicas=0 \
+            -n "${namespace}"
+        else
+          kubectl set image deployment/score-service \
+            score-service="${registry}/usfarcade/score-service:${tag}" \
+            -n "${namespace}"
+        fi
 
         kubectl set image deployment/leaderboard-service \
           leaderboard-service="${registry}/usfarcade/leaderboard-service:${tag}" \
