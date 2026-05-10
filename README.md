@@ -54,3 +54,9 @@ GitHub Actions workflows are defined under `.github/workflows` for Dev, Nightly 
 
 - `docs/observability-proof-checklist.md`
 - `docs/day2-schema-change-demo.md`
+
+## Infrastructure Runbooks
+
+- `docs/terraform-remote-state.md`
+- `docs/observability-proof-checklist.md`
+- `docs/canary-rollouts.md`

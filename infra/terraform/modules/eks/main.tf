@@ -1,6 +1,14 @@
 locals {
   cluster_role_arn = var.create_iam_roles ? aws_iam_role.cluster[0].arn : var.cluster_role_arn
   node_role_arn    = var.create_iam_roles ? aws_iam_role.node[0].arn : var.node_role_arn
+  node_release_version = var.node_release_version == "latest" ? jsondecode(
+    data.aws_ssm_parameter.eks_al2023_recommended[0].value
+  ).release_version : var.node_release_version
+}
+
+data "aws_ssm_parameter" "eks_al2023_recommended" {
+  count = var.node_release_version == "latest" ? 1 : 0
+  name  = "/aws/service/eks/optimized-ami/${var.kubernetes_version}/amazon-linux-2023/x86_64/standard/recommended"
 }
 
 resource "aws_iam_role" "cluster" {
@@ -79,13 +87,16 @@ resource "aws_eks_cluster" "this" {
 
 resource "aws_eks_node_group" "primary" {
   cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "${var.name}-primary"
+  node_group_name = "${var.name}-${var.node_group_rotation_id}"
   node_role_arn   = local.node_role_arn
   subnet_ids      = var.private_subnet_ids
 
-  ami_type       = "AL2023_x86_64_STANDARD"
-  capacity_type  = "ON_DEMAND"
-  instance_types = var.node_instance_types
+  ami_type             = "AL2023_x86_64_STANDARD"
+  capacity_type        = "ON_DEMAND"
+  instance_types       = var.node_instance_types
+  release_version      = local.node_release_version
+  version              = var.kubernetes_version
+  force_update_version = var.node_force_update_version
 
   scaling_config {
     desired_size = var.node_desired_size
@@ -99,9 +110,14 @@ resource "aws_eks_node_group" "primary" {
 
   labels = {
     workload = "general"
+    rotation = var.node_group_rotation_id
   }
 
   tags = var.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   depends_on = [aws_iam_role_policy_attachment.node]
 }
@@ -125,4 +141,3 @@ resource "aws_eks_addon" "kube_proxy" {
   addon_name                  = "kube-proxy"
   resolve_conflicts_on_update = "OVERWRITE"
 }
-

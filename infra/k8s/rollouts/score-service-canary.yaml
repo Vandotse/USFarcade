@@ -5,25 +5,6 @@ metadata:
   namespace: usfarcade
 spec:
   replicas: 3
-  strategy:
-    canary:
-      maxUnavailable: 0
-      maxSurge: 1
-      steps:
-        - setWeight: 10
-        - pause:
-            duration: 2m
-        - setWeight: 50
-        - pause:
-            duration: 5m
-        - setWeight: 100
-      analysis:
-        templates:
-          - templateName: http-success-rate
-        args:
-          - name: service-name
-            value: score-service
-  revisionHistoryLimit: 3
   selector:
     matchLabels:
       app.kubernetes.io/component: score-service
@@ -36,7 +17,7 @@ spec:
       terminationGracePeriodSeconds: 45
       containers:
         - name: score-service
-          image: ghcr.io/OWNER/USFarcade/score-service:dev
+          image: 881933021016.dkr.ecr.us-east-1.amazonaws.com/usfarcade/score-service:dev
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -73,4 +54,22 @@ spec:
             limits:
               cpu: 600m
               memory: 384Mi
-
+  strategy:
+    canary:
+      maxUnavailable: 0
+      maxSurge: 1
+      steps:
+        - setWeight: 10
+        - pause:
+            duration: 2m
+        - setWeight: 50
+        - pause:
+            duration: 5m
+        - setWeight: 100
+      analysis:
+        templates:
+          - templateName: score-service-http-5xx-rate
+        args:
+          - name: service-name
+            value: score-service
+  revisionHistoryLimit: 3

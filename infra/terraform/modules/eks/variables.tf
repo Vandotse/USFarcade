@@ -58,8 +58,30 @@ variable "node_max_size" {
   default = 5
 }
 
+variable "node_release_version" {
+  description = "EKS optimized AMI release version for the managed node group. Set to latest to read the current AL2023 recommendation from SSM, set an explicit release version to pin, or leave null to let EKS choose."
+  type        = string
+  default     = null
+}
+
+variable "node_force_update_version" {
+  description = "Force a managed node group version update even if pods cannot drain cleanly. Keep false normally; use true for controlled Day 2 patch demos if needed."
+  type        = bool
+  default     = false
+}
+
+variable "node_group_rotation_id" {
+  description = "Stable suffix for the managed node group name. Change this value, for example from primary to patch-001, to force a create-before-destroy node group rotation for a Day 2 patch wave."
+  type        = string
+  default     = "primary"
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]{0,31}$", var.node_group_rotation_id))
+    error_message = "node_group_rotation_id must be 1-32 lowercase letters, numbers, or hyphens, and must start with a letter or number."
+  }
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
 }
-

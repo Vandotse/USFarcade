@@ -1,0 +1,7 @@
+aws_region = "us-east-1"
+project    = "usfarcade"
+
+# Defaults to usfarcade-<account-id>-us-east-1-tfstate when omitted.
+# state_bucket_name = "usfarcade-881933021016-us-east-1-tfstate"
+
+lock_table_name = "usfarcade-terraform-locks"

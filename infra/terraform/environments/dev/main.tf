@@ -31,18 +31,21 @@ module "network" {
 module "eks" {
   source = "../../modules/eks"
 
-  name                = local.name
-  kubernetes_version  = var.kubernetes_version
-  vpc_id              = module.network.vpc_id
-  private_subnet_ids  = module.network.private_subnet_ids
-  create_iam_roles    = var.create_iam_roles
-  cluster_role_arn    = var.cluster_role_arn
-  node_role_arn       = var.node_role_arn
-  node_instance_types = var.node_instance_types
-  node_desired_size   = var.node_desired_size
-  node_min_size       = var.node_min_size
-  node_max_size       = var.node_max_size
-  tags                = local.tags
+  name                      = local.name
+  kubernetes_version        = var.kubernetes_version
+  vpc_id                    = module.network.vpc_id
+  private_subnet_ids        = module.network.private_subnet_ids
+  create_iam_roles          = var.create_iam_roles
+  cluster_role_arn          = var.cluster_role_arn
+  node_role_arn             = var.node_role_arn
+  node_instance_types       = var.node_instance_types
+  node_desired_size         = var.node_desired_size
+  node_min_size             = var.node_min_size
+  node_max_size             = var.node_max_size
+  node_release_version      = var.node_release_version
+  node_force_update_version = var.node_force_update_version
+  node_group_rotation_id    = var.node_group_rotation_id
+  tags                      = local.tags
 }
 
 module "rds" {

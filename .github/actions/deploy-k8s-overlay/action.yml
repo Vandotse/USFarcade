@@ -62,6 +62,14 @@ runs:
           -n "${namespace}" \
           --timeout=180s
 
+    - name: Reconcile canary rollout controls
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -f "infra/k8s/rollouts/kustomization.yaml" ]; then
+          kubectl apply -k infra/k8s/rollouts
+        fi
+
     - name: Deploy immutable image tags
       shell: bash
       run: |
@@ -83,9 +91,22 @@ runs:
           game-service="${registry}/usfarcade/game-service:${tag}" \
           -n "${namespace}"
 
-        kubectl set image deployment/score-service \
-          score-service="${registry}/usfarcade/score-service:${tag}" \
-          -n "${namespace}"
+        if kubectl get rollout score-service -n "${namespace}" >/dev/null 2>&1; then
+          score_image="${registry}/usfarcade/score-service:${tag}"
+
+          kubectl scale deployment/score-service \
+            --replicas=0 \
+            -n "${namespace}"
+
+          kubectl patch rollout score-service \
+            --type='json' \
+            -p="[{\"op\":\"replace\",\"path\":\"/spec/template/spec/containers/0/image\",\"value\":\"${score_image}\"}]" \
+            -n "${namespace}"
+        else
+          kubectl set image deployment/score-service \
+            score-service="${registry}/usfarcade/score-service:${tag}" \
+            -n "${namespace}"
+        fi
 
         kubectl set image deployment/leaderboard-service \
           leaderboard-service="${registry}/usfarcade/leaderboard-service:${tag}" \
@@ -101,7 +122,15 @@ runs:
         kubectl rollout status deployment/frontend -n "${namespace}" --timeout=240s
         kubectl rollout status deployment/player-service -n "${namespace}" --timeout=240s
         kubectl rollout status deployment/game-service -n "${namespace}" --timeout=240s
-        kubectl rollout status deployment/score-service -n "${namespace}" --timeout=240s
+        if kubectl get rollout score-service -n "${namespace}" >/dev/null 2>&1; then
+          kubectl wait \
+            --for=jsonpath='{.status.phase}'=Healthy \
+            rollout/score-service \
+            -n "${namespace}" \
+            --timeout=900s
+        else
+          kubectl rollout status deployment/score-service -n "${namespace}" --timeout=240s
+        fi
         kubectl rollout status deployment/leaderboard-service -n "${namespace}" --timeout=240s
 
         kubectl get pods -n "${namespace}"

@@ -45,13 +45,15 @@ node_role_arn    = "arn:aws:iam::ACCOUNT_ID:role/ROLE_FROM_NADI"
 
 ## State
 
-For grading, remote state should be used rather than local state. Use `backend.s3.tf.example` as the template after Nadi provides:
+For grading, remote state should be used rather than local state. This repo includes a Terraform bootstrap root:
 
-- S3 bucket name for state
-- DynamoDB lock table name
-- AWS region
+```text
+infra/terraform/bootstrap/remote-state
+```
 
-Copy it into the environment directory as `backend.tf` and change the `key` per environment:
+It creates an encrypted, versioned S3 bucket and a DynamoDB lock table. See `docs/terraform-remote-state.md` for the migration flow.
+
+Use `backend.s3.tf.example` as the template for environment `backend.tf` files and change the `key` per environment:
 
 ```text
 usfarcade/dev/terraform.tfstate
@@ -94,3 +96,12 @@ The node group has:
 
 That lets Kubernetes drain and replace one node at a time while keeping service endpoints available.
 
+For a guaranteed live patch-wave demo, set a new local rotation ID in `terraform.tfvars`:
+
+```hcl
+node_release_version      = "latest"
+node_force_update_version = true
+node_group_rotation_id    = "patch-001"
+```
+
+Changing `node_group_rotation_id` changes the managed node group name. Terraform uses `create_before_destroy` to create the new node group before deleting the old one, which makes node replacement visible even if the cluster is already on the latest recommended AMI release.

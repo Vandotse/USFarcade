@@ -11,6 +11,11 @@ node_instance_types = ["t3.medium"]
 node_desired_size   = 3
 node_min_size       = 2
 node_max_size       = 5
+# Day 2 node patching: set to "latest" to have Terraform read the current AL2023 EKS optimized AMI release from SSM.
+# node_release_version = "latest"
+# node_force_update_version = true
+# To guarantee visible live node replacement, change the rotation id, for example:
+# node_group_rotation_id = "patch-001"
 rds_instance_class  = "db.t3.micro"
 
 enable_dns         = true

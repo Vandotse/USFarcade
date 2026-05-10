@@ -72,4 +72,6 @@ Why canary fits this app:
 - failed canaries can be rolled back before most users are affected
 - it is easier to defend in a live chaos/demo setting than a full duplicate blue/green stack
 
-The current GitHub Actions workflows deploy with Kubernetes zero-downtime rolling updates. The canary manifests under `infra/k8s/rollouts` are the next activation step once Argo Rollouts is installed in the cluster.
+The current GitHub Actions workflows deploy with Kubernetes zero-downtime rolling updates by default. The canary resources under `infra/k8s/rollouts` activate Argo Rollouts for `score-service` once the Argo Rollouts controller is installed in the cluster.
+
+When Argo Rollouts is activated for `score-service`, the shared deploy action detects `rollout/score-service` and waits for the Argo Rollout to become `Healthy` instead of waiting on the underlying Deployment. See `docs/canary-rollouts.md`.
