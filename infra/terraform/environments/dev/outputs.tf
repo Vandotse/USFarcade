@@ -2,6 +2,14 @@ output "cluster_name" {
   value = module.eks.cluster_name
 }
 
+output "node_group_name" {
+  value = module.eks.node_group_name
+}
+
+output "node_group_release_version" {
+  value = module.eks.node_group_release_version
+}
+
 output "rds_endpoint" {
   value = module.rds.endpoint
 }

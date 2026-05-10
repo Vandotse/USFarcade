@@ -22,6 +22,10 @@ output "node_group_name" {
   value = aws_eks_node_group.primary.node_group_name
 }
 
+output "node_group_release_version" {
+  value = aws_eks_node_group.primary.release_version
+}
+
 output "node_role_arn" {
   value = local.node_role_arn
 }
