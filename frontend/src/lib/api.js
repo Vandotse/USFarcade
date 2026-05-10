@@ -27,6 +27,10 @@ export function createPlayer(displayName, avatarColor) {
   });
 }
 
+export function getPlayerAchievements(playerId) {
+  return request(`/players/${playerId}/achievements`);
+}
+
 export function submitScore(score) {
   return request("/scores", {
     method: "POST",
@@ -37,4 +41,3 @@ export function submitScore(score) {
 export function getLeaderboard(gameSlug, limit = 10) {
   return request(`/leaderboards/${gameSlug}?limit=${limit}`);
 }
-

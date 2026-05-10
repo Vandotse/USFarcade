@@ -50,6 +50,11 @@ docker compose down -v
 
 GitHub Actions workflows are defined under `.github/workflows` for Dev, Nightly QA, UAT, and Prod promotion. See `docs/cicd-promotion.md` for trigger rules, required GitHub variables, and the zero-downtime deployment story.
 
+## Demo Runbooks
+
+- `docs/observability-proof-checklist.md`
+- `docs/day2-schema-change-demo.md`
+
 ## Infrastructure Runbooks
 
 - `docs/terraform-remote-state.md`

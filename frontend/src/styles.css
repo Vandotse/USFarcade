@@ -270,18 +270,97 @@ input {
   padding: 0 16px;
 }
 
+.profile-summary {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
 .player-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 14px;
   color: #e4e4e7;
+  font-weight: 850;
 }
 
-.player-chip span {
+.player-chip > span {
   width: 12px;
   height: 12px;
   border-radius: 999px;
+}
+
+.badge-shelf {
+  display: grid;
+  gap: 10px;
+}
+
+.badge-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #facc15;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.badge-shelf ul {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.badge-card {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.badge-card svg {
+  color: #facc15;
+}
+
+.badge-card.gold {
+  border-color: rgba(250, 204, 21, 0.5);
+  background: rgba(250, 204, 21, 0.08);
+}
+
+.badge-card.silver {
+  border-color: rgba(212, 212, 216, 0.38);
+}
+
+.badge-card span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.badge-card strong,
+.badge-card small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge-card strong {
+  color: #f4f4f5;
+  font-size: 0.86rem;
+}
+
+.badge-card small,
+.badge-shelf p {
+  margin: 0;
+  color: #a1a1aa;
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .game-tabs {
