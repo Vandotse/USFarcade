@@ -23,7 +23,7 @@ output "node_group_name" {
 }
 
 output "node_group_release_version" {
-  value = aws_eks_node_group.primary.release_version
+  value = nonsensitive(aws_eks_node_group.primary.release_version)
 }
 
 output "node_role_arn" {
