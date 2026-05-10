@@ -101,7 +101,15 @@ runs:
         kubectl rollout status deployment/frontend -n "${namespace}" --timeout=240s
         kubectl rollout status deployment/player-service -n "${namespace}" --timeout=240s
         kubectl rollout status deployment/game-service -n "${namespace}" --timeout=240s
-        kubectl rollout status deployment/score-service -n "${namespace}" --timeout=240s
+        if kubectl get rollout score-service -n "${namespace}" >/dev/null 2>&1; then
+          kubectl wait \
+            --for=jsonpath='{.status.phase}'=Healthy \
+            rollout/score-service \
+            -n "${namespace}" \
+            --timeout=900s
+        else
+          kubectl rollout status deployment/score-service -n "${namespace}" --timeout=240s
+        fi
         kubectl rollout status deployment/leaderboard-service -n "${namespace}" --timeout=240s
 
         kubectl get pods -n "${namespace}"
