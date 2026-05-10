@@ -49,3 +49,8 @@ docker compose down -v
 ## Cloud Promotion
 
 GitHub Actions workflows are defined under `.github/workflows` for Dev, Nightly QA, UAT, and Prod promotion. See `docs/cicd-promotion.md` for trigger rules, required GitHub variables, and the zero-downtime deployment story.
+
+## Infrastructure Runbooks
+
+- `docs/terraform-remote-state.md`
+- `docs/observability-proof-checklist.md`
