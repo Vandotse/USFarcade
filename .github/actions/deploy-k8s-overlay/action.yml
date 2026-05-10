@@ -43,6 +43,14 @@ runs:
         set -euo pipefail
         kubectl apply -k "infra/k8s/overlays/${{ inputs.overlay }}"
 
+    - name: Apply canary rollout controls
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ -f "infra/k8s/rollouts/kustomization.yaml" ]; then
+          kubectl apply -k infra/k8s/rollouts
+        fi
+
     - name: Run schema migration
       if: ${{ inputs.run-migrations == 'true' }}
       shell: bash
